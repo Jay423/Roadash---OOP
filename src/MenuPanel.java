@@ -37,8 +37,14 @@ public class MenuPanel extends JPanel {
         add(exitBtn);
 
         // Button actions
-        playBtn.addActionListener(e -> startGame());
-        exitBtn.addActionListener(e -> System.exit(0));
+        playBtn.addActionListener(e -> {
+            music.playSFX("click.wav");
+            startGame();
+        });
+        exitBtn.addActionListener(e -> {
+            music.playSFX("click.wav");
+            System.exit(0);
+        });
 
         // Recenter everything if panel size changes
         addComponentListener(new java.awt.event.ComponentAdapter() {

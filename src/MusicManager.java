@@ -70,4 +70,24 @@ public class MusicManager {
     }
 }
 
+public void playSFX(String fileName) {
+    try {
+        URL url = getClass().getResource("/assets/audio/" + fileName);
+        if (url == null) {
+            System.out.println("SFX file not found: " + fileName);
+            return;
+        }
+
+        AudioInputStream audioStream = AudioSystem.getAudioInputStream(url);
+        Clip sfxClip = AudioSystem.getClip();
+        sfxClip.open(audioStream);
+        sfxClip.start();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+
+
 }

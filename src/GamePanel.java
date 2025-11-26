@@ -53,8 +53,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         resumeBtn.setVisible(false);
         exitBtn.setVisible(false);
 
-        resumeBtn.addActionListener(e -> resumeGame());
+        resumeBtn.addActionListener(e -> {
+            music.playSFX("click.wav");
+            resumeGame();
+        });
         exitBtn.addActionListener(e -> {
+            music.playSFX("click.wav");
             frame.setContentPane(new MenuPanel(frame, music)); // Pass music
             frame.revalidate();
         });
@@ -82,6 +86,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void pauseGame() {
         paused = true;
         timer.stop();
+        repaint(); 
 
         resumeBtn.setVisible(true);
         exitBtn.setVisible(true);
@@ -95,6 +100,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void resumeGame() {
         paused = false;
         timer.start();
+        repaint(); 
         resumeBtn.setVisible(false);
         exitBtn.setVisible(false);
         SwingUtilities.invokeLater(() -> requestFocusInWindow());
@@ -248,6 +254,7 @@ g.drawString(pauseText, getWidth() - textWidth - 20, 30); // 20 px from the righ
             case KeyEvent.VK_UP -> movingUp = true;
             case KeyEvent.VK_DOWN -> movingDown = true;
             case KeyEvent.VK_ESCAPE -> {
+                music.playSFX("click.wav");
                 if (!paused) pauseGame();
             }
         }
