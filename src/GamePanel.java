@@ -176,6 +176,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 new String[]{"Play Again", "Exit"},
                 "Play Again"
         );
+        
+        music.playSFX("click.wav");
 
         if (choice == 0) {
             // Restart game

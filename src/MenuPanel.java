@@ -101,7 +101,7 @@ public class MenuPanel extends JPanel {
         // Draw centered game title
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 36));
-        String title = "Bern Biot";
+        String title = "ROADASH";
         int titleWidth = g.getFontMetrics().stringWidth(title);
         g.drawString(title, (panelWidth - titleWidth) / 2, 150);
 
