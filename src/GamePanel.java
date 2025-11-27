@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
@@ -7,7 +8,7 @@ import javax.swing.*;
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     private GameFrame frame;
-    private MusicManager music; // Added field
+    private MusicManager music;
     private Timer timer;
     private Player player;
     private ArrayList<Car> cars;
@@ -28,24 +29,26 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private int numLanes = 4;
     private int laneWidth;
 
-    // Lane scroll
     private int laneScrollOffset = 0;
 
-    public GamePanel(GameFrame frame, MusicManager music) { // Constructor updated
+    // Add a Font field
+    private Font customFont;
+
+    public GamePanel(GameFrame frame, MusicManager music) {
         this.frame = frame;
         this.music = music;
 
         setFocusable(true);
+        requestFocusInWindow();
         setLayout(null);
         addKeyListener(this);
 
         cars = new ArrayList<>();
         rand = new Random();
 
-        timer = new Timer(16, this); // ~60 FPS
+        timer = new Timer(16, this);
         timer.start();
 
-        // Pause buttons
         resumeBtn = new JButton("Resume");
         exitBtn = new JButton("Exit Game");
         resumeBtn.setFocusable(false);
@@ -59,12 +62,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         });
         exitBtn.addActionListener(e -> {
             music.playSFX("click.wav");
-            frame.setContentPane(new MenuPanel(frame, music)); // Pass music
+            frame.setContentPane(new MenuPanel(frame, music));
             frame.revalidate();
         });
 
         add(resumeBtn);
         add(exitBtn);
+
+        loadCustomFont();  // Load font here
 
         SwingUtilities.invokeLater(() -> requestFocusInWindow());
 
@@ -74,6 +79,23 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 removeComponentListener(this);
             }
         });
+    }
+
+    private void loadCustomFont() {
+        try (InputStream is = getClass().getResourceAsStream("/assets/font/Jersey10-Regular.ttf")) {
+            if (is == null) {
+                System.err.println("Font resource not found!");
+                customFont = new Font("Arial", Font.PLAIN, 20);
+                return;
+            }
+            customFont = Font.createFont(Font.TRUETYPE_FONT, is);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(customFont);
+            customFont = customFont.deriveFont(Font.PLAIN, 20f); // default size
+        } catch (Exception e) {
+            e.printStackTrace();
+            customFont = new Font("Arial", Font.PLAIN, 20);
+        }
     }
 
     private void initPlayer() {
@@ -86,7 +108,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void pauseGame() {
         paused = true;
         timer.stop();
-        repaint(); 
 
         resumeBtn.setVisible(true);
         exitBtn.setVisible(true);
@@ -100,9 +121,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void resumeGame() {
         paused = false;
         timer.start();
-        repaint(); 
+
         resumeBtn.setVisible(false);
         exitBtn.setVisible(false);
+
         SwingUtilities.invokeLater(() -> requestFocusInWindow());
     }
 
@@ -126,7 +148,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         player.x = Math.max(0, Math.min(player.x, getWidth() - 50));
         player.y = Math.max(0, Math.min(player.y, getHeight() - 80));
 
-        // Spawn cars randomly
         if (rand.nextInt(20) == 0) {
             int carWidth = 60;
             int carHeight = 120;
@@ -152,7 +173,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         for (Car c : cars) {
             c.y += 8;
-
             if (player.getBounds().intersects(c.getBounds())) {
                 music.playSoundEffect("chicken-soundeffect.wav");
                 gameOver = true;
@@ -176,24 +196,18 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 new String[]{"Play Again", "Exit"},
                 "Play Again"
         );
-        
+
         music.playSFX("click.wav");
 
         if (choice == 0) {
-            // Restart game
-            frame.setContentPane(new GamePanel(frame, music)); // Pass music
+            frame.setContentPane(new GamePanel(frame, music));
             frame.revalidate();
             SwingUtilities.invokeLater(() -> frame.getContentPane().requestFocusInWindow());
         } else {
-            // Go back to menu
-            frame.setContentPane(new MenuPanel(frame, music)); // Pass music
+            frame.setContentPane(new MenuPanel(frame, music));
             frame.revalidate();
         }
     }
-
-
-
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -209,7 +223,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         laneWidth = getWidth() / numLanes;
 
-        // Moving lane lines
         for (int i = 1; i < numLanes; i++) {
             int x = i * laneWidth - dashWidth / 2;
             for (int y = -dashHeight + laneScrollOffset; y < getHeight(); y += dashHeight + dashSpacing) {
@@ -221,7 +234,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         for (Car c : cars) c.draw(g);
 
         g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 20));
+        if (customFont != null) {
+            g.setFont(customFont.deriveFont(Font.BOLD, 20f));
+        } else {
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+        }
         g.drawString("Score: " + score, 20, 30);
 
         if (paused) {
@@ -230,20 +247,25 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
             g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, 48));
+            if (customFont != null) {
+                g2d.setFont(customFont.deriveFont(Font.BOLD, 48f));
+            } else {
+                g2d.setFont(new Font("Arial", Font.BOLD, 48));
+            }
             String pausedText = "GAME PAUSED";
             int textWidth = g2d.getFontMetrics().stringWidth(pausedText);
             g2d.drawString(pausedText, (getWidth() - textWidth) / 2, getHeight() / 2 - 100);
         }
 
-        // Draw "ESC to Pause" at top-right corner
-g.setColor(Color.WHITE);
-g.setFont(new Font("Arial", Font.PLAIN, 16));
-
-String pauseText = "ESC to Pause";
-int textWidth = g.getFontMetrics().stringWidth(pauseText);
-g.drawString(pauseText, getWidth() - textWidth - 20, 30); // 20 px from the right edge
-
+        g.setColor(Color.WHITE);
+        if (customFont != null) {
+            g.setFont(customFont.deriveFont(Font.PLAIN, 16f));
+        } else {
+            g.setFont(new Font("Arial", Font.PLAIN, 16));
+        }
+        String pauseText = "ESC to Pause";
+        int textWidth = g.getFontMetrics().stringWidth(pauseText);
+        g.drawString(pauseText, getWidth() - textWidth - 20, 30);
     }
 
     @Override
@@ -251,24 +273,40 @@ g.drawString(pauseText, getWidth() - textWidth - 20, 30); // 20 px from the righ
         if (gameOver) return;
 
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT -> movingLeft = true;
-            case KeyEvent.VK_RIGHT -> movingRight = true;
-            case KeyEvent.VK_UP -> movingUp = true;
-            case KeyEvent.VK_DOWN -> movingDown = true;
-            case KeyEvent.VK_ESCAPE -> {
+            case KeyEvent.VK_LEFT:
+                movingLeft = true;
+                break;
+            case KeyEvent.VK_RIGHT:
+                movingRight = true;
+                break;
+            case KeyEvent.VK_UP:
+                movingUp = true;
+                break;
+            case KeyEvent.VK_DOWN:
+                movingDown = true;
+                break;
+            case KeyEvent.VK_ESCAPE:
                 music.playSFX("click.wav");
                 if (!paused) pauseGame();
-            }
+                break;
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT -> movingLeft = false;
-            case KeyEvent.VK_RIGHT -> movingRight = false;
-            case KeyEvent.VK_UP -> movingUp = false;
-            case KeyEvent.VK_DOWN -> movingDown = false;
+            case KeyEvent.VK_LEFT:
+                movingLeft = false;
+                break;
+            case KeyEvent.VK_RIGHT:
+                movingRight = false;
+                break;
+            case KeyEvent.VK_UP:
+                movingUp = false;
+                break;
+            case KeyEvent.VK_DOWN:
+                movingDown = false;
+                break;
         }
     }
 
