@@ -27,11 +27,23 @@ public class MenuPanel extends JPanel {
         this.music.playMusic("menu-music.wav", true); // loop menu music
 
         // Create buttons
-        playBtn = new JButton("Play Game");
+        ImageIcon playIcon = new ImageIcon(getClass().getResource("/assets/play_button.png"));
+        
+        Image scaledPlayImg = playIcon.getImage().getScaledInstance(200, 90, Image.SCALE_SMOOTH);
+        
+        playBtn = new JButton(new ImageIcon(scaledPlayImg));
         exitBtn = new JButton("Exit Game");
 
+        playBtn.setBorderPainted(false);
+        playBtn.setContentAreaFilled(false);
+        playBtn.setFocusPainted(false);
+        playBtn.setOpaque(false);
         playBtn.setSize(200, 50);
         exitBtn.setSize(200, 50);
+
+        
+
+        
 
         add(playBtn);
         add(exitBtn);
