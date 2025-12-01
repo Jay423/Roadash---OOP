@@ -108,7 +108,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void pauseGame() {
         paused = true;
         timer.stop();
-        repaint(); 
 
         resumeBtn.setVisible(true);
         exitBtn.setVisible(true);
@@ -122,7 +121,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private void resumeGame() {
         paused = false;
         timer.start();
-        repaint(); 
+
         resumeBtn.setVisible(false);
         exitBtn.setVisible(false);
 
@@ -274,24 +273,40 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         if (gameOver) return;
 
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT -> movingLeft = true;
-            case KeyEvent.VK_RIGHT -> movingRight = true;
-            case KeyEvent.VK_UP -> movingUp = true;
-            case KeyEvent.VK_DOWN -> movingDown = true;
-            case KeyEvent.VK_ESCAPE -> {
+            case KeyEvent.VK_LEFT:
+                movingLeft = true;
+                break;
+            case KeyEvent.VK_RIGHT:
+                movingRight = true;
+                break;
+            case KeyEvent.VK_UP:
+                movingUp = true;
+                break;
+            case KeyEvent.VK_DOWN:
+                movingDown = true;
+                break;
+            case KeyEvent.VK_ESCAPE:
                 music.playSFX("click.wav");
                 if (!paused) pauseGame();
-            }
+                break;
         }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT -> movingLeft = false;
-            case KeyEvent.VK_RIGHT -> movingRight = false;
-            case KeyEvent.VK_UP -> movingUp = false;
-            case KeyEvent.VK_DOWN -> movingDown = false;
+            case KeyEvent.VK_LEFT:
+                movingLeft = false;
+                break;
+            case KeyEvent.VK_RIGHT:
+                movingRight = false;
+                break;
+            case KeyEvent.VK_UP:
+                movingUp = false;
+                break;
+            case KeyEvent.VK_DOWN:
+                movingDown = false;
+                break;
         }
     }
 
