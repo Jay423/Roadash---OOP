@@ -156,7 +156,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         player.x = Math.max(0, Math.min(player.x, getWidth() - 60));
         player.y = Math.max(0, Math.min(player.y, getHeight() - 60));
 
-        if (rand.nextInt(25) == 0) { // Slightly less frequent car spawning
+        if (rand.nextInt(30) == 0) { // Less frequent car spawning to reduce overlapping
             int carWidth = 80;  // Updated to match new car size
             int carHeight = 140; // Updated to match new car size
             int newX;
@@ -169,12 +169,19 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 newX = rand.nextInt(getWidth() - carWidth);
                 attempts++;
 
-                // Only check recent cars (performance optimization)
-                int carsToCheck = Math.min(cars.size(), 3);
-                for (int i = cars.size() - carsToCheck; i < cars.size(); i++) {
-                    Car c = cars.get(i);
-                    if (c.y < carHeight + 50) { // Increased safety margin
-                        if (Math.abs(c.x - newX) < carWidth + 20) {
+                // Check all cars for better overlap prevention
+                for (Car c : cars) {
+                    // Check cars that are still visible or recently spawned
+                    if (c.y < carHeight + 100) { // Larger safety margin
+                        // Horizontal overlap check with bigger spacing
+                        if (Math.abs(c.x - newX) < carWidth + 40) {
+                            overlap = true;
+                            break;
+                        }
+                    }
+                    // Also check for cars that might be too close vertically
+                    if (Math.abs(c.y - (-carHeight)) < 150) { // Vertical spacing check
+                        if (Math.abs(c.x - newX) < carWidth + 30) {
                             overlap = true;
                             break;
                         }
