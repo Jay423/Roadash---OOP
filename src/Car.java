@@ -13,21 +13,25 @@ public class Car {
     // Static block to load all car images once
     static {
         String[] carFiles = {
-            "blackCar1.png", 
-            "blackCar2.png", 
-            "blackCar3.png",
-            "purpleCar1.png",
-            "purpleCar2.png",
-            "purpleCar3.png",
-            "blueCar1.png",
-            "blueCar2.png",
-            "blueCar3.png",
-            "redCar1.png",
-            "redCar2.png",
-            "redCar3.png",
-            "policeCar.png",
-            "taxiCar.png"
-        }; // your actual files
+            "Car1.png", 
+            "Car2.png", 
+            "Car3.png",
+            "Car4.png",
+            "Car5.png",
+            "Car6.png",
+            "Car7.png",
+            "Car8.png",
+            "Car9.png",
+            "Car10.png",
+            "Car11.png",
+            "Car12.png",
+            "Car13.png",
+            "Car14.png",
+            "Car15.png",
+            "Car16.png",
+            "Car17.png",
+            "Car18.png"
+        }; // actual files in assets folder
         carImages = new BufferedImage[carFiles.length];
 
         for (int i = 0; i < carFiles.length; i++) {
@@ -44,20 +48,32 @@ public class Car {
         this.x = x;
         this.y = y;
 
-        // Pick a random image
-        image = carImages[rand.nextInt(carImages.length)];
+        // Pick a random image with null check
+        if (carImages != null && carImages.length > 0) {
+            int index = rand.nextInt(carImages.length);
+            image = carImages[index];
+            // If image is null, try to use first available image
+            if (image == null && carImages.length > 0) {
+                for (BufferedImage img : carImages) {
+                    if (img != null) {
+                        image = img;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public void draw(Graphics g) {
         if (image != null) {
-            g.drawImage(image, x, y, 60, 120, null); // adjust width/height if needed
+            g.drawImage(image, x, y, 80, 140, null); // Increased size for better visibility
         } else {
             g.setColor(Color.RED);
-            g.fillRect(x, y, 60, 120);
+            g.fillRect(x, y, 80, 140);
         }
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(x, y, 40, 105);
+        return new Rectangle(x, y, 60, 125); // Updated collision bounds
     }
 }

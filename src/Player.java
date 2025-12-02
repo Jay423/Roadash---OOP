@@ -21,14 +21,14 @@ public class Player {
 
     public void draw(Graphics g) {
         if (image != null) {
-            g.drawImage(image, x, y, 50, 50, null); // 50x80 size (adjust if needed)
+            g.drawImage(image, x, y, 60, 60, null); // Smaller size, good visibility
         } else {
             g.setColor(Color.BLUE); // fallback
-            g.fillRect(x, y, 50, 80);
+            g.fillRect(x, y, 60, 60);
         }
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(x, y, 50, 50);
+        return new Rectangle(x, y, 60, 60);
     }
 }

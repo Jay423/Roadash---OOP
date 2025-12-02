@@ -46,7 +46,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         cars = new ArrayList<>();
         rand = new Random();
 
-        timer = new Timer(16, this);
+        timer = new Timer(20, this); // Slightly slower refresh rate for better performance
+        timer.setCoalesce(true); // Combine multiple timer events
         timer.start();
 
         resumeBtn = new JButton("Resume");
@@ -62,7 +63,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         });
         exitBtn.addActionListener(e -> {
             music.playSFX("click.wav");
-            frame.setContentPane(new MenuPanel(frame, music));
+            MenuPanel menuPanel = new MenuPanel(frame, music);
+            menuPanel.resetChicken();
+            frame.setContentPane(menuPanel);
             frame.revalidate();
         });
 
@@ -71,14 +74,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         loadCustomFont();  // Load font here
 
-        SwingUtilities.invokeLater(() -> requestFocusInWindow());
+        // Initialize player immediately
+        initPlayer();
 
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                initPlayer();
-                removeComponentListener(this);
-            }
-        });
+        SwingUtilities.invokeLater(() -> requestFocusInWindow());
     }
 
     private void loadCustomFont() {
@@ -99,9 +98,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     }
 
     private void initPlayer() {
-        laneWidth = getWidth() / numLanes;
-        int playerX = (getWidth() - 50) / 2;
-        int playerY = getHeight() - 120;
+        int width = getWidth() > 0 ? getWidth() : 700; // fallback width
+        int height = getHeight() > 0 ? getHeight() : 700; // fallback height
+        
+        laneWidth = width / numLanes;
+        int playerX = (width - 60) / 2;
+        int playerY = height - 120;
         player = new Player(playerX, playerY);
     }
 
@@ -140,35 +142,49 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         laneScrollOffset += 8;
         if (laneScrollOffset > 40) laneScrollOffset = 0;
 
+        // Ensure player is initialized
+        if (player == null) {
+            initPlayer();
+        }
+
         if (movingLeft) player.x -= 8;
         if (movingRight) player.x += 8;
         if (movingUp) player.y -= 8;
         if (movingDown) player.y += 8;
 
-        player.x = Math.max(0, Math.min(player.x, getWidth() - 50));
-        player.y = Math.max(0, Math.min(player.y, getHeight() - 80));
+        player.x = Math.max(0, Math.min(player.x, getWidth() - 60));
+        player.y = Math.max(0, Math.min(player.y, getHeight() - 60));
 
-        if (rand.nextInt(20) == 0) {
-            int carWidth = 60;
-            int carHeight = 120;
+        if (rand.nextInt(25) == 0) { // Slightly less frequent car spawning
+            int carWidth = 80;  // Updated to match new car size
+            int carHeight = 140; // Updated to match new car size
             int newX;
             boolean overlap;
+            int attempts = 0;
+            final int maxAttempts = 5; // Limit attempts to prevent infinite loops
 
             do {
                 overlap = false;
                 newX = rand.nextInt(getWidth() - carWidth);
+                attempts++;
 
-                for (Car c : cars) {
-                    if (c.y < carHeight + 20) {
-                        if (Math.abs(c.x - newX) < carWidth + 10) {
+                // Only check recent cars (performance optimization)
+                int carsToCheck = Math.min(cars.size(), 3);
+                for (int i = cars.size() - carsToCheck; i < cars.size(); i++) {
+                    Car c = cars.get(i);
+                    if (c.y < carHeight + 50) { // Increased safety margin
+                        if (Math.abs(c.x - newX) < carWidth + 20) {
                             overlap = true;
                             break;
                         }
                     }
                 }
-            } while (overlap);
+            } while (overlap && attempts < maxAttempts);
 
-            cars.add(new Car(newX, -carHeight));
+            // Only add car if we found a good position or exhausted attempts
+            if (!overlap || attempts >= maxAttempts) {
+                cars.add(new Car(newX, -carHeight));
+            }
         }
 
         for (Car c : cars) {
@@ -182,41 +198,37 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        cars.removeIf(c -> c.y > getHeight() + 200);
+        // More efficient car removal to prevent memory buildup
+        cars.removeIf(c -> c.y > getHeight() + 100);
+        
+        // Prevent excessive car accumulation (performance safeguard)
+        if (cars.size() > 15) {
+            cars.subList(0, cars.size() - 10).clear();
+        }
     }
 
     private void showGameOverScreen() {
-        int choice = JOptionPane.showOptionDialog(
-                this,
-                "Game Over! Score: " + score,
-                "Game Over",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                new String[]{"Play Again", "Exit"},
-                "Play Again"
-        );
-
-        music.playSFX("click.wav");
-
-        if (choice == 0) {
-            frame.setContentPane(new GamePanel(frame, music));
-            frame.revalidate();
-            SwingUtilities.invokeLater(() -> frame.getContentPane().requestFocusInWindow());
-        } else {
-            frame.setContentPane(new MenuPanel(frame, music));
-            frame.revalidate();
-        }
+        // Get current high score from MenuPanel
+        int currentHighScore = MenuPanel.getHighestScore();
+        
+        // Switch to the new GameOverPanel
+        frame.setContentPane(new GameOverPanel(frame, music, score, currentHighScore));
+        frame.revalidate();
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        
+        // Enable anti-aliasing for smoother graphics
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
 
-        g.setColor(Color.GRAY);
-        g.fillRect(0, 0, getWidth(), getHeight());
+        g2d.setColor(Color.GRAY);
+        g2d.fillRect(0, 0, getWidth(), getHeight());
 
-        g.setColor(Color.WHITE);
+        g2d.setColor(Color.WHITE);
         int dashWidth = 10;
         int dashHeight = 20;
         int dashSpacing = 20;
@@ -226,23 +238,22 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         for (int i = 1; i < numLanes; i++) {
             int x = i * laneWidth - dashWidth / 2;
             for (int y = -dashHeight + laneScrollOffset; y < getHeight(); y += dashHeight + dashSpacing) {
-                g.fillRect(x, y, dashWidth, dashHeight);
+                g2d.fillRect(x, y, dashWidth, dashHeight);
             }
         }
 
-        if (player != null) player.draw(g);
-        for (Car c : cars) c.draw(g);
+        if (player != null) player.draw(g2d);
+        for (Car c : cars) c.draw(g2d);
 
-        g.setColor(Color.WHITE);
+        g2d.setColor(Color.WHITE);
         if (customFont != null) {
-            g.setFont(customFont.deriveFont(Font.BOLD, 20f));
+            g2d.setFont(customFont.deriveFont(Font.BOLD, 20f));
         } else {
-            g.setFont(new Font("Arial", Font.BOLD, 20));
+            g2d.setFont(new Font("Arial", Font.BOLD, 20));
         }
-        g.drawString("Score: " + score, 20, 30);
+        g2d.drawString("Score: " + score, 20, 30);
 
         if (paused) {
-            Graphics2D g2d = (Graphics2D) g;
             g2d.setColor(new Color(0, 0, 0, 150));
             g2d.fillRect(0, 0, getWidth(), getHeight());
 
@@ -257,15 +268,15 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             g2d.drawString(pausedText, (getWidth() - textWidth) / 2, getHeight() / 2 - 100);
         }
 
-        g.setColor(Color.WHITE);
+        g2d.setColor(Color.WHITE);
         if (customFont != null) {
-            g.setFont(customFont.deriveFont(Font.PLAIN, 16f));
+            g2d.setFont(customFont.deriveFont(Font.PLAIN, 16f));
         } else {
-            g.setFont(new Font("Arial", Font.PLAIN, 16));
+            g2d.setFont(new Font("Arial", Font.PLAIN, 16));
         }
         String pauseText = "ESC to Pause";
-        int textWidth = g.getFontMetrics().stringWidth(pauseText);
-        g.drawString(pauseText, getWidth() - textWidth - 20, 30);
+        int textWidth = g2d.getFontMetrics().stringWidth(pauseText);
+        g2d.drawString(pauseText, getWidth() - textWidth - 20, 30);
     }
 
     @Override

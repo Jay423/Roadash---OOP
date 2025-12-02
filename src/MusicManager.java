@@ -34,6 +34,12 @@ public class MusicManager {
             clip = AudioSystem.getClip();
             clip.open(audioStream);
 
+            // Apply volume setting
+            if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+                gainControl.setValue(volumeDb);
+            }
+
             if (loop) {
                 clip.loop(Clip.LOOP_CONTINUOUSLY);
             } else {

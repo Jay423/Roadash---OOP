@@ -1,8 +1,9 @@
 import java.awt.*;
+import java.awt.event.*;
 import java.io.InputStream;
 import javax.swing.*;
 
-public class MenuPanel extends JPanel {
+public class MenuPanel extends JPanel implements KeyListener {
 
     private GameFrame frame;
     private MusicManager music; // Music manager reference
@@ -20,32 +21,54 @@ public class MenuPanel extends JPanel {
     private int titleWidth = 550;  // scale width (adjust as you like)
     private int titleHeight = 200; // scale height (adjust as you like)
 
+    // Chicken animation fields
+    private Image chickenImage;
+    private int chickenX = 50;  // Starting position on left
+    private int chickenY = 500; // Y position (moved down lower)
+    private boolean chickenWalking = false;
+    private boolean chickenReacting = false;
+    private int reactionFrame = 0;
+    private int targetChickenX = 550; // Target position on right
+    private Timer chickenTimer;
+    private Timer reactionTimer;
+
     public MenuPanel(GameFrame frame, MusicManager music) {
         this.frame = frame;
         this.music = music;
 
         setLayout(null);
-
+        
+        // Make panel focusable for keyboard input
+        setFocusable(true);
+        addKeyListener(this);
+        
         loadCustomFont();
 
         // Load the background image
         ImageIcon icon = new ImageIcon(getClass().getResource("/assets/menu-bg.png"));
         bgImage = icon.getImage();
 
-        // Load + SCALE title image ONCE
+        // Load + SCALE title image ONCE with faster scaling
         ImageIcon titleIcon = new ImageIcon(getClass().getResource("/assets/title.png"));
-        titleImage = titleIcon.getImage().getScaledInstance(titleWidth, titleHeight, Image.SCALE_SMOOTH);
+        titleImage = titleIcon.getImage().getScaledInstance(titleWidth, titleHeight, Image.SCALE_FAST);
+
+        // Load chicken image - bigger size like in the road
+        ImageIcon chickenIcon = new ImageIcon(getClass().getResource("/assets/chicken0.png"));
+        chickenImage = chickenIcon.getImage().getScaledInstance(90, 90, Image.SCALE_FAST); // Use FAST instead of SMOOTH
+
+        // Initialize chicken animation timer with slower refresh for better performance
+        chickenTimer = new Timer(75, e -> updateChickenAnimation()); // Increased from 50ms to 75ms
 
         // Start menu music
         this.music.stopMusic();
         this.music.playMusic("menu-music.wav", true);
 
-        // Create Play button
+        // Create Play button with faster scaling
         ImageIcon playIcon = new ImageIcon(getClass().getResource("/assets/play_button.png"));
-        Image scaledPlayImg = playIcon.getImage().getScaledInstance(200, 90, Image.SCALE_SMOOTH);
+        Image scaledPlayImg = playIcon.getImage().getScaledInstance(200, 90, Image.SCALE_FAST);
 
         ImageIcon exitIcon = new ImageIcon(getClass().getResource("/assets/exit.png"));
-        Image scaledExitImg = exitIcon.getImage().getScaledInstance(200, 90, Image.SCALE_SMOOTH);
+        Image scaledExitImg = exitIcon.getImage().getScaledInstance(200, 90, Image.SCALE_FAST);
 
         playBtn = new JButton(new ImageIcon(scaledPlayImg));
         exitBtn = new JButton(new ImageIcon(scaledExitImg));
@@ -67,7 +90,7 @@ public class MenuPanel extends JPanel {
         // Button actions
         playBtn.addActionListener(e -> {
             music.playSFX("click.wav");
-            startGame();
+            startChickenWalk();
         });
 
         exitBtn.addActionListener(e -> {
@@ -84,7 +107,27 @@ public class MenuPanel extends JPanel {
             }
         });
 
-        SwingUtilities.invokeLater(this::centerComponents);
+        SwingUtilities.invokeLater(() -> {
+            centerComponents();
+            requestFocusInWindow(); // Request focus for keyboard input
+        });
+    }
+
+    public void resetChicken() {
+        chickenX = 50;
+        chickenWalking = false;
+        chickenReacting = false;
+        reactionFrame = 0;
+        if (chickenTimer != null) {
+            chickenTimer.stop();
+        }
+        if (reactionTimer != null) {
+            reactionTimer.stop();
+        }
+        playBtn.setEnabled(true);
+        exitBtn.setEnabled(true);
+        requestFocusInWindow(); // Ensure keyboard focus is maintained
+        repaint();
     }
 
     private void centerComponents() {
@@ -96,6 +139,47 @@ public class MenuPanel extends JPanel {
 
         playBtn.setLocation((panelWidth - playBtn.getWidth()) / 2, startY);
         exitBtn.setLocation((panelWidth - exitBtn.getWidth()) / 2, startY + playBtn.getHeight() + spacing);
+    }
+
+    private void startChickenWalk() {
+        if (!chickenWalking) {
+            chickenWalking = true;
+            playBtn.setEnabled(false); // Disable button during animation
+            exitBtn.setEnabled(false);
+            chickenTimer.start();
+        }
+    }
+
+    private void updateChickenAnimation() {
+        if (chickenWalking && !chickenReacting) {
+            chickenX += 12; // Move chicken 1.5x faster (8 * 1.5 = 12)
+            repaint();
+
+            // Check if chicken reached the target
+            if (chickenX >= targetChickenX) {
+                chickenWalking = false;
+                chickenReacting = true;
+                chickenTimer.stop();
+                startSurpriseReaction();
+            }
+        }
+    }
+    
+    private void startSurpriseReaction() {
+        reactionFrame = 0;
+        reactionTimer = new Timer(200, e -> { // Slower reaction timer to reduce CPU load
+            reactionFrame++;
+            repaint();
+            
+            // After 5 frames (about 1 second), start the game
+            if (reactionFrame >= 5) {
+                reactionTimer.stop();
+                Timer gameStartTimer = new Timer(400, evt -> startGame());
+                gameStartTimer.setRepeats(false);
+                gameStartTimer.start();
+            }
+        });
+        reactionTimer.start();
     }
 
     private void startGame() {
@@ -117,13 +201,22 @@ public class MenuPanel extends JPanel {
         if (score > highestScore) highestScore = score;
     }
 
+    public static int getHighestScore() {
+        return highestScore;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+        
+        // Enable hardware acceleration hints
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
         // Draw background image
         if (bgImage != null) {
-            g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
+            g2d.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
         }
 
         int panelWidth = getWidth();
@@ -131,19 +224,58 @@ public class MenuPanel extends JPanel {
         // Draw centered title image
         int titleX = (panelWidth - titleWidth) / 2;
         int titleY = 20;
-        g.drawImage(titleImage, titleX, titleY, this);
+        g2d.drawImage(titleImage, titleX, titleY, this);
+
+        // Draw cute chicken with reaction effects
+        if (chickenImage != null) {
+            // Add bouncing effect during reaction
+            int drawY = chickenY;
+            if (chickenReacting) {
+                // Bounce up and down
+                drawY = chickenY + (int)(Math.sin(reactionFrame * 2) * 10);
+                
+                // Draw surprise effects around chicken
+                g2d.setColor(Color.YELLOW);
+                g2d.setFont(new Font("Arial", Font.BOLD, 24));
+                
+                // Exclamation marks that appear and fade
+                if (reactionFrame <= 3) {
+                    g2d.drawString("!", chickenX + 95, chickenY + 20);
+                    g2d.drawString("!", chickenX + 110, chickenY + 35);
+                }
+                
+                // Stars effect
+                if (reactionFrame >= 2) {
+                    g2d.setColor(Color.WHITE);
+                    g2d.drawString("✦", chickenX - 20, chickenY + 30);
+                    g2d.drawString("✦", chickenX + 100, chickenY + 60);
+                    g2d.drawString("✧", chickenX - 10, chickenY + 70);
+                }
+            }
+            
+            g2d.drawImage(chickenImage, chickenX, drawY, this);
+        }
 
         // Highest score text
         if (customFont != null) {
-            g.setFont(customFont);
+            g2d.setFont(customFont);
         } else {
-            g.setFont(new Font("Arial", Font.PLAIN, 24));
+            g2d.setFont(new Font("Arial", Font.PLAIN, 24));
         }
-        g.setColor(Color.WHITE);
+        g2d.setColor(Color.WHITE);
         String scoreText = "Highest Score: " + highestScore;
-        int scoreWidth = g.getFontMetrics().stringWidth(scoreText);
+        int scoreWidth = g2d.getFontMetrics().stringWidth(scoreText);
 
-        g.drawString(scoreText, (panelWidth - scoreWidth) / 2, 225);
+        g2d.drawString(scoreText, (panelWidth - scoreWidth) / 2, 225);
+
+        // Add instruction text when chicken is walking
+        if (chickenWalking) {
+            g2d.setFont(new Font("Arial", Font.BOLD, 20));
+            g2d.setColor(Color.YELLOW);
+            String walkText = "Get ready to play!";
+            int walkWidth = g2d.getFontMetrics().stringWidth(walkText);
+            g2d.drawString(walkText, (panelWidth - walkWidth) / 2, 260);
+        }
     }
 
     private void loadCustomFont() {
@@ -163,5 +295,25 @@ public class MenuPanel extends JPanel {
             customFont = new Font("Arial", Font.PLAIN, 24);
         }
     }
-    
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        // Handle spacebar press to trigger PLAY button
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            if (playBtn.isEnabled() && !chickenWalking && !chickenReacting) {
+                music.playSFX("click.wav");
+                startChickenWalk();
+            }
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        // Not needed for this functionality
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // Not needed for this functionality
+    }
 }
