@@ -31,9 +31,9 @@ public class GameOverPanel extends JPanel {
         ImageIcon icon = new ImageIcon(getClass().getResource("/assets/menu-bg.png"));
         bgImage = icon.getImage();
 
-        // Load chicken1.png image
+        // Load chicken1.png image - bigger and more visible
         ImageIcon chickenIcon = new ImageIcon(getClass().getResource("/assets/chicken1.png"));
-        chickenImage = chickenIcon.getImage().getScaledInstance(80, 80, Image.SCALE_FAST);
+        chickenImage = chickenIcon.getImage().getScaledInstance(120, 120, Image.SCALE_FAST);
 
         // Create "GAME OVER" title image or text
         // For now we'll use text, but you could create a game-over image
@@ -166,10 +166,10 @@ public class GameOverPanel extends JPanel {
             g.drawString(newRecordText, (panelWidth - newRecordWidth) / 2, 280);
         }
 
-        // Draw chicken1.png above the play button
+        // Draw chicken1.png above the play button - bigger and more visible
         if (chickenImage != null) {
-            int chickenX = (panelWidth - 80) / 2; // Center horizontally
-            int chickenY = 320; // Position above the play button
+            int chickenX = (panelWidth - 120) / 2; // Center horizontally for bigger size
+            int chickenY = 300; // Position higher and above the play button
             g.drawImage(chickenImage, chickenX, chickenY, this);
         }
     }
