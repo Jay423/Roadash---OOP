@@ -277,13 +277,14 @@ public class MenuPanel extends JPanel implements KeyListener {
             g2d.drawString(walkText, (panelWidth - walkWidth) / 2, 260);
         }
         
-        // Apply 50% transparency to buttons when clicked
+        // Apply 50% transparency to buttons when clicked - smooth overlay without grid lines
         if (buttonsTransparent) {
-            AlphaComposite transparent = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-            g2d.setComposite(transparent);
+            // Set rendering hints for smooth graphics without artifacts
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             
-            // Draw semi-transparent overlay on button areas
-            g2d.setColor(new Color(128, 128, 128, 128)); // Gray with 50% alpha
+            // Create smooth semi-transparent overlay
+            g2d.setColor(new Color(0, 0, 0, 127)); // Black with 50% alpha for smooth overlay
             if (playBtn != null) {
                 g2d.fillRect(playBtn.getX(), playBtn.getY(), playBtn.getWidth(), playBtn.getHeight());
             }
@@ -291,8 +292,9 @@ public class MenuPanel extends JPanel implements KeyListener {
                 g2d.fillRect(exitBtn.getX(), exitBtn.getY(), exitBtn.getWidth(), exitBtn.getHeight());
             }
             
-            // Reset composite
-            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+            // Reset rendering hints to original state
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         }
     }
 
