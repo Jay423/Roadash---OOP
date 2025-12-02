@@ -124,8 +124,7 @@ public class MenuPanel extends JPanel implements KeyListener {
         if (reactionTimer != null) {
             reactionTimer.stop();
         }
-        playBtn.setEnabled(true);
-        exitBtn.setEnabled(true);
+        // Buttons are always enabled - no need to set enabled state
         requestFocusInWindow(); // Ensure keyboard focus is maintained
         repaint();
     }
@@ -144,8 +143,7 @@ public class MenuPanel extends JPanel implements KeyListener {
     private void startChickenWalk() {
         if (!chickenWalking) {
             chickenWalking = true;
-            playBtn.setEnabled(false); // Disable button during animation
-            exitBtn.setEnabled(false);
+            // Don't disable buttons - keep them enabled to prevent gray appearance
             chickenTimer.start();
         }
     }
@@ -300,7 +298,7 @@ public class MenuPanel extends JPanel implements KeyListener {
     public void keyPressed(KeyEvent e) {
         // Handle spacebar press to trigger PLAY button
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            if (playBtn.isEnabled() && !chickenWalking && !chickenReacting) {
+            if (!chickenWalking && !chickenReacting) {
                 music.playSFX("click.wav");
                 startChickenWalk();
             }
