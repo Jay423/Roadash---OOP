@@ -31,7 +31,6 @@ public class MenuPanel extends JPanel implements KeyListener {
     private int targetChickenX = 550; // Target position on right
     private Timer chickenTimer;
     private Timer reactionTimer;
-    private boolean buttonsTransparent = false;
 
     public MenuPanel(GameFrame frame, MusicManager music) {
         this.frame = frame;
@@ -119,7 +118,6 @@ public class MenuPanel extends JPanel implements KeyListener {
         chickenWalking = false;
         chickenReacting = false;
         reactionFrame = 0;
-        buttonsTransparent = false; // Reset button transparency
         if (chickenTimer != null) {
             chickenTimer.stop();
         }
@@ -144,8 +142,6 @@ public class MenuPanel extends JPanel implements KeyListener {
     private void startChickenWalk() {
         if (!chickenWalking) {
             chickenWalking = true;
-            buttonsTransparent = true; // Make buttons 50% transparent
-            repaint(); // Refresh to show transparency effect
             chickenTimer.start();
         }
     }
@@ -275,26 +271,6 @@ public class MenuPanel extends JPanel implements KeyListener {
             String walkText = "Get ready to play!";
             int walkWidth = g2d.getFontMetrics().stringWidth(walkText);
             g2d.drawString(walkText, (panelWidth - walkWidth) / 2, 260);
-        }
-        
-        // Apply 50% transparency to buttons when clicked - smooth overlay without grid lines
-        if (buttonsTransparent) {
-            // Set rendering hints for smooth graphics without artifacts
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            
-            // Create smooth semi-transparent overlay
-            g2d.setColor(new Color(0, 0, 0, 127)); // Black with 50% alpha for smooth overlay
-            if (playBtn != null) {
-                g2d.fillRect(playBtn.getX(), playBtn.getY(), playBtn.getWidth(), playBtn.getHeight());
-            }
-            if (exitBtn != null) {
-                g2d.fillRect(exitBtn.getX(), exitBtn.getY(), exitBtn.getWidth(), exitBtn.getHeight());
-            }
-            
-            // Reset rendering hints to original state
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-            g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_SPEED);
         }
     }
 
