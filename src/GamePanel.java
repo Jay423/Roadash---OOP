@@ -157,8 +157,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         player.y = Math.max(0, Math.min(player.y, getHeight() - 60));
 
         if (rand.nextInt(35) == 0) { // Reduced frequency for realistic traffic
-            int carWidth = 80;
-            int carHeight = 140;
+            int carWidth = 100;  // Bigger car width
+            int carHeight = 170; // Bigger car height
             
             // Use proper lane system like real roads
             int[] lanes = new int[numLanes];

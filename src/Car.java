@@ -72,14 +72,14 @@ public class Car {
 
     public void draw(Graphics g) {
         if (image != null) {
-            g.drawImage(image, x, y, 80, 140, null); // Increased size for better visibility
+            g.drawImage(image, x, y, 100, 170, null); // Bigger size for better visibility
         } else {
             g.setColor(Color.RED);
-            g.fillRect(x, y, 80, 140);
+            g.fillRect(x, y, 100, 170);
         }
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(x, y, 60, 125); // Updated collision bounds
+        return new Rectangle(x, y, 80, 150); // Updated collision bounds for bigger cars
     }
 }
