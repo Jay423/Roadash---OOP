@@ -31,6 +31,7 @@ public class MenuPanel extends JPanel implements KeyListener {
     private int targetChickenX = 550; // Target position on right
     private Timer chickenTimer;
     private Timer reactionTimer;
+    private boolean buttonsTransparent = false;
 
     public MenuPanel(GameFrame frame, MusicManager music) {
         this.frame = frame;
@@ -118,13 +119,13 @@ public class MenuPanel extends JPanel implements KeyListener {
         chickenWalking = false;
         chickenReacting = false;
         reactionFrame = 0;
+        buttonsTransparent = false; // Reset button transparency
         if (chickenTimer != null) {
             chickenTimer.stop();
         }
         if (reactionTimer != null) {
             reactionTimer.stop();
         }
-        // Buttons are always enabled - no need to set enabled state
         requestFocusInWindow(); // Ensure keyboard focus is maintained
         repaint();
     }
@@ -143,7 +144,8 @@ public class MenuPanel extends JPanel implements KeyListener {
     private void startChickenWalk() {
         if (!chickenWalking) {
             chickenWalking = true;
-            // Don't disable buttons - keep them enabled to prevent gray appearance
+            buttonsTransparent = true; // Make buttons 50% transparent
+            repaint(); // Refresh to show transparency effect
             chickenTimer.start();
         }
     }
@@ -273,6 +275,24 @@ public class MenuPanel extends JPanel implements KeyListener {
             String walkText = "Get ready to play!";
             int walkWidth = g2d.getFontMetrics().stringWidth(walkText);
             g2d.drawString(walkText, (panelWidth - walkWidth) / 2, 260);
+        }
+        
+        // Apply 50% transparency to buttons when clicked
+        if (buttonsTransparent) {
+            AlphaComposite transparent = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+            g2d.setComposite(transparent);
+            
+            // Draw semi-transparent overlay on button areas
+            g2d.setColor(new Color(128, 128, 128, 128)); // Gray with 50% alpha
+            if (playBtn != null) {
+                g2d.fillRect(playBtn.getX(), playBtn.getY(), playBtn.getWidth(), playBtn.getHeight());
+            }
+            if (exitBtn != null) {
+                g2d.fillRect(exitBtn.getX(), exitBtn.getY(), exitBtn.getWidth(), exitBtn.getHeight());
+            }
+            
+            // Reset composite
+            g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
         }
     }
 
