@@ -156,41 +156,41 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         player.x = Math.max(0, Math.min(player.x, getWidth() - 60));
         player.y = Math.max(0, Math.min(player.y, getHeight() - 60));
 
-        if (rand.nextInt(30) == 0) { // Less frequent car spawning to reduce overlapping
-            int carWidth = 80;  // Updated to match new car size
-            int carHeight = 140; // Updated to match new car size
-            int newX;
-            boolean overlap;
-            int attempts = 0;
-            final int maxAttempts = 5; // Limit attempts to prevent infinite loops
-
-            do {
-                overlap = false;
-                newX = rand.nextInt(getWidth() - carWidth);
-                attempts++;
-
-                // Check all cars for better overlap prevention
-                for (Car c : cars) {
-                    // Check cars that are still visible or recently spawned
-                    if (c.y < carHeight + 100) { // Larger safety margin
-                        // Horizontal overlap check with bigger spacing
-                        if (Math.abs(c.x - newX) < carWidth + 40) {
-                            overlap = true;
-                            break;
-                        }
-                    }
-                    // Also check for cars that might be too close vertically
-                    if (Math.abs(c.y - (-carHeight)) < 150) { // Vertical spacing check
-                        if (Math.abs(c.x - newX) < carWidth + 30) {
-                            overlap = true;
-                            break;
-                        }
+        if (rand.nextInt(35) == 0) { // Reduced frequency for realistic traffic
+            int carWidth = 80;
+            int carHeight = 140;
+            
+            // Use proper lane system like real roads
+            int[] lanes = new int[numLanes];
+            for (int i = 0; i < numLanes; i++) {
+                lanes[i] = (i * laneWidth) + (laneWidth - carWidth) / 2; // Center car in lane
+            }
+            
+            // Choose a random lane
+            int selectedLane = rand.nextInt(numLanes);
+            int newX = lanes[selectedLane];
+            
+            // Check if the selected lane is clear (realistic traffic spacing)
+            boolean laneIsClear = true;
+            for (Car c : cars) {
+                // Check if there's a car in the same lane
+                int carLane = -1;
+                for (int i = 0; i < numLanes; i++) {
+                    if (Math.abs(c.x - lanes[i]) < 20) { // Car is in this lane
+                        carLane = i;
+                        break;
                     }
                 }
-            } while (overlap && attempts < maxAttempts);
-
-            // Only add car if we found a good position or exhausted attempts
-            if (!overlap || attempts >= maxAttempts) {
+                
+                // If there's a car in the selected lane and it's too close
+                if (carLane == selectedLane && c.y > -300) { // Need 300px minimum spacing
+                    laneIsClear = false;
+                    break;
+                }
+            }
+            
+            // Only spawn car if lane is clear (realistic traffic)
+            if (laneIsClear) {
                 cars.add(new Car(newX, -carHeight));
             }
         }
