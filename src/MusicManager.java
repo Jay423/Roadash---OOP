@@ -11,7 +11,7 @@ public class MusicManager {
     public void setVolume(float volumeDb) {
         this.volumeDb = volumeDb;
 
-        if (clip != null) {
+        if (clip != null && clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
             gainControl.setValue(volumeDb);
         }
@@ -26,7 +26,7 @@ public class MusicManager {
             URL url = getClass().getResource("/assets/audio/" + fileName);
 
             if (url == null) {
-                System.out.println("Music file not found: " + fileName);
+                System.err.println("Music file not found: " + fileName);
                 return;
             }
 
@@ -62,7 +62,7 @@ public class MusicManager {
         URL url = getClass().getResource("/assets/audio/" + fileName);
 
         if (url == null) {
-            System.out.println("Sound effect not found: " + fileName);
+            System.err.println("Sound effect not found: " + fileName);
             return;
         }
 
@@ -80,7 +80,7 @@ public void playSFX(String fileName) {
     try {
         URL url = getClass().getResource("/assets/audio/" + fileName);
         if (url == null) {
-            System.out.println("SFX file not found: " + fileName);
+            System.err.println("SFX file not found: " + fileName);
             return;
         }
 

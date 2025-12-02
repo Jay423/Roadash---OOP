@@ -37,8 +37,14 @@ public class Car {
         for (int i = 0; i < carFiles.length; i++) {
             try {
                 // Updated path for nested folder
-                carImages[i] = ImageIO.read(Car.class.getResource("/assets/cars/" + carFiles[i]));
+                java.net.URL imageUrl = Car.class.getResource("/assets/cars/" + carFiles[i]);
+                if (imageUrl == null) {
+                    System.err.println("Car image not found: " + carFiles[i]);
+                } else {
+                    carImages[i] = ImageIO.read(imageUrl);
+                }
             } catch (IOException e) {
+                System.err.println("Failed to load car image " + carFiles[i] + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }

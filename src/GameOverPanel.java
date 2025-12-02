@@ -15,10 +15,7 @@ public class GameOverPanel extends JPanel {
     private Image bgImage;
     private Font customFont;
 
-    // Title image fields
-    private Image titleImage;
-    private int titleWidth = 400;
-    private int titleHeight = 150;
+    // Using text-based title instead of image
 
     public GameOverPanel(GameFrame frame, MusicManager music, int score, int highScore) {
         this.frame = frame;
@@ -127,7 +124,6 @@ public class GameOverPanel extends JPanel {
         }
 
         int panelWidth = getWidth();
-        int panelHeight = getHeight();
 
         // Set font
         if (customFont != null) {

@@ -13,8 +13,14 @@ public class Player {
 
         try {
             // Load image from assets folder
-            image = ImageIO.read(getClass().getResource("/assets/chicken.png"));
+            java.net.URL imageUrl = getClass().getResource("/assets/chicken.png");
+            if (imageUrl == null) {
+                System.err.println("Player image not found: /assets/chicken.png");
+            } else {
+                image = ImageIO.read(imageUrl);
+            }
         } catch (IOException e) {
+            System.err.println("Failed to load player image: " + e.getMessage());
             e.printStackTrace();
         }
     }

@@ -145,6 +145,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         // Ensure player is initialized
         if (player == null) {
             initPlayer();
+            if (player == null) return; // Safety check - if still null, don't continue
         }
 
         if (movingLeft) player.x -= 8;
