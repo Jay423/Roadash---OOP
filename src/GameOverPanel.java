@@ -14,6 +14,7 @@ public class GameOverPanel extends JPanel {
 
     private Image bgImage;
     private Font customFont;
+    private Image chickenImage;
 
     // Using text-based title instead of image
 
@@ -29,6 +30,10 @@ public class GameOverPanel extends JPanel {
         // Load the background image (same as menu)
         ImageIcon icon = new ImageIcon(getClass().getResource("/assets/menu-bg.png"));
         bgImage = icon.getImage();
+
+        // Load chicken1.png image
+        ImageIcon chickenIcon = new ImageIcon(getClass().getResource("/assets/chicken1.png"));
+        chickenImage = chickenIcon.getImage().getScaledInstance(80, 80, Image.SCALE_FAST);
 
         // Create "GAME OVER" title image or text
         // For now we'll use text, but you could create a game-over image
@@ -152,13 +157,20 @@ public class GameOverPanel extends JPanel {
         int highScoreWidth = g.getFontMetrics().stringWidth(highScoreText);
         g.drawString(highScoreText, (panelWidth - highScoreWidth) / 2, 240);
 
-        // Draw "New Record!" if applicable
+        // Draw "NEW RECORD!" if applicable
         if (finalScore >= highScore && finalScore > 0) {
             g.setColor(Color.YELLOW);
             g.setFont(g.getFont().deriveFont(Font.BOLD, 28f));
             String newRecordText = "NEW RECORD!";
             int newRecordWidth = g.getFontMetrics().stringWidth(newRecordText);
             g.drawString(newRecordText, (panelWidth - newRecordWidth) / 2, 280);
+        }
+
+        // Draw chicken1.png above the play button
+        if (chickenImage != null) {
+            int chickenX = (panelWidth - 80) / 2; // Center horizontally
+            int chickenY = 320; // Position above the play button
+            g.drawImage(chickenImage, chickenX, chickenY, this);
         }
     }
 
